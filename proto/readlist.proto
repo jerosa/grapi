@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+
+import "google/api/annotations.proto";
+
+option go_package=".;readlistgrpc";
+
+package readlistgrpc;
+
+
+service ReadListService {
+    rpc Create(CreateReadListReq) returns (CreateReadListResp) {
+        option (google.api.http) = {
+            post: "/v1/readlist"
+            body: "read_list"
+        };
+    }
+    rpc Add(AddArticleReq) returns (AddArticleResp) {
+        option (google.api.http) = {
+            post: "/v1/readlist/{readList_id}/article"
+            body: "article"
+        };
+    }
+    rpc List(ListReadListReq) returns (ListReadListResp) {
+        option (google.api.http) = {
+            get: "/v1/readlist/{readList_id}"
+        };
+    }
+}
+
+message Article {
+    string id = 1;
+    string readList_id = 2;
+    string name = 3;
+    string link = 4;
+}
+
+message ReadList {
+    enum ReadListStatus {
+        INACTIVE = 0;
+        ACTIVE = 1;
+    }
+
+    string id = 1;
+    string name = 2;
+    ReadListStatus status = 3;
+}
+
+message CreateReadListReq {
+    ReadList read_list = 1;
+}
+
+message CreateReadListResp {
+    string readList_id = 1;
+}
+
+message AddArticleReq {
+    string readList_id = 1;
+    Article article = 2;
+}
+
+message AddArticleResp {
+    string article_id = 1;
+}
+
+message ListReadListReq {
+    string readList_id = 1;
+}
+
+message ListReadListResp {
+    repeated Article articles = 1;
+}
