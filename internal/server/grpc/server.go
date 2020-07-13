@@ -5,10 +5,12 @@ import (
 	"net"
 	"os"
 
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/jerosa/grapi/internal/adding"
 	"github.com/jerosa/grapi/internal/creating"
 	"github.com/jerosa/grapi/internal/listing"
 	"github.com/jerosa/grapi/internal/server"
+	"github.com/jerosa/grapi/internal/server/grpc/interceptor"
 	pb "github.com/jerosa/grapi/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
@@ -41,7 +43,7 @@ func (s *grpcServer) Serve() error {
 	grpcLog := grpclog.NewLoggerV2(os.Stdout, os.Stderr, os.Stderr)
 	grpclog.SetLoggerV2(grpcLog)
 
-	srv := grpc.NewServer()
+	srv := grpc.NewServer(withUnaryInterceptor())
 	serviceServer := NewReadListServer(
 		s.creatingService,
 		s.addingService,
@@ -54,4 +56,11 @@ func (s *grpcServer) Serve() error {
 	}
 
 	return nil
+}
+
+func withUnaryInterceptor() grpc.ServerOption {
+	return grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+		interceptor.LoggingServerInterceptor,
+		interceptor.AuthorizationServerInterceptor,
+	))
 }
